@@ -1,0 +1,23 @@
+{
+	"name": "exedron/routeller",
+	"description": "Annotation based routing controller for Exedra",
+	"license": "MIT",
+	"keywords": ["Exedra", "Routing", "Annotation", "Controller", "Restful"],
+	"authors": [{
+		"name": "Ahmad Rahimie Ahmad Zailani",
+		"email": "newrehmi@gmail.com",
+		"role": "lead"
+	}],
+	"support": {
+		"issues": "https://github.com/exedron/routeller/issues"
+	},
+	"require": {
+		"rosengate/exedra": "dev-master",
+		"minime/annotations": "~3.0"
+	},
+	"autoload": {
+		"psr-4": {
+			"Exedron\\Routeller\\": "src"
+		}
+	}
+}
