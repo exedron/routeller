@@ -35,7 +35,8 @@ class Handler implements GroupHandler
                 'post' => 'post',
                 'put' => 'put',
                 'patch' => 'patch',
-                'delete' => 'delete'
+                'delete' => 'delete',
+                'option' => 'option'
             );
         }
 
