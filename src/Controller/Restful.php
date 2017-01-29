@@ -1,7 +1,7 @@
 <?php
 namespace Exedron\Routeller\Controller;
 
-abstract class Restful
+abstract class Restful extends Controller
 {
     protected $isRestful = true;
 }
