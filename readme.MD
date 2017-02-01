@@ -1,5 +1,5 @@
 # \Exedron\Routeller
-Annotation and reflection based anemic routeful controller for Exedra. 
+A Minimal annotation and reflection based anemic routeful controller for Exedra. 
 
 In a simple word, a routeable-action-controller component in steroid.
 
@@ -9,13 +9,15 @@ know today, is often nothing more than a bag of methods with ambiguous responsib
 except by the controller class name, and what it inheritently contains, aside from being mapped independantly from the routing component. And I find it tedious to constantly need to work on both the route mapping, and the controller codes.
 
 **The ambiguity of responsibility**. This is what this package is about to tackle, 
-by totally removing the responsibility of a preparing services, flatten the controller design, 
+by totally removing the responsibility of preparing services, flatten the controller design, 
 and make it as anemic as possible. In a simple word, the controller knows nothing about the runtime construction logic, 
 but knows very well about the routing design.
 
+The annotation design is fairly simple, just a @property-value mapping. Nothing much!
+
 ## Requirement
 This package works only on Exedra. It cannot be used independantly, because.. Of course, 
-it's part of Exedra couting component.
+it's part of Exedra routing component.
 
 ## Installation and usage
 Install the package
@@ -76,7 +78,7 @@ $app->map['web']->group(function(Router $router) {
         return 'This is index page
     });
     
-    $router['about-us']->any('/')->execute(function(Exe $exe) {
+    $router['about-us']->any('/about-us')->execute(function(Exe $exe) {
         return 'This is about page';
     });
 });
