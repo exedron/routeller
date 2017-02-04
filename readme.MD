@@ -25,16 +25,16 @@ Install the package
 composer require exedron\routeller dev-master
 ```
 Setup the service provider
-```
+```php
 // your application instance
 $app->provider->add(\Exedron\Routeller\Provider::class);
 ```
 On your preferred route, add use the controller using the *group()* method.
-```
+```php
 $app->map['web']->group(new \App\Controller\Web);
 ```
 On the \App\Controller\Web class, extends the base class.
-```
+```php
 <?php
 namespace App\Controller;
 
@@ -46,7 +46,7 @@ class Web extends Controller {
 ```
 ### Adding executable routes
 Annotate the method with the route properties. The method name has to be prefixed with *execute*.
-```
+```php
 <?php
 namespace App\Controller;
 
@@ -72,7 +72,7 @@ class Web extends \Exedron\Routeller\Controller\Controller
 }
 ```
 Doing above is similar to doing :
-```
+```php
 $app->map['web']->group(function(Router $router) {
     $router['index']->any('/')->execute(function(Exe $exe) {
         return 'This is index page
@@ -87,7 +87,7 @@ $app->map['web']->group(function(Router $router) {
 ### Middleware
 Add a middleware for the current group's route, by prefixing the method name with *middleware*.
  This method expects no annotation.
-```
+```php
 public function middlewareAuth(Exe $exe)
 {
     if(!$exe->session->has('user_id'))
@@ -100,7 +100,7 @@ public function middlewareAuth(Exe $exe)
 ### Subrouting / Nest-Routing
 Add a subgroup route. The method name must be prefixed with *group*.
 The method must return the routing group pattern.
-```
+```php
 /**
  * @path /products
  */
@@ -112,7 +112,7 @@ public function groupProducts()
 
 ### Normal routing
 You can also do a usual routing by prefixing the method name with *route*. This method expects no annotation.
-```
+```php
 public function routeGeneral(Group $router)
 {
     $router->get('/')->execute(function() {
@@ -124,7 +124,7 @@ public function routeGeneral(Group $router)
 This package also support a simple restful mapping.
 
 #### Extending the restful abstract class
-```
+```php
 namespace App\Controller;
 
 use Exedron\Routeller\Controller\Restful;
@@ -135,7 +135,7 @@ class Products extends Restful
 ```
 #### GET, POST, PUT, PATCH, DELETE verb
 Prefix each method with the http verb as you like.
-```
+```php
 /**
  * Get all products
  * @path /
@@ -144,7 +144,7 @@ public function getProducts(Exe $exe)
 {
 }
 ```
-```
+```php
 /**
  * Create a new product
  * @path /
@@ -153,7 +153,7 @@ pubic function postProducts(Exe $exe)
 {
 }
 ```
-```
+```php
 /**
  * GET the product
  * @path /[:id]
@@ -162,7 +162,7 @@ pubic function getProduct(Exe $exe)
 {
 }
 ```
-```
+```php
 /**
  * DELETE the product
  * @path /[:id]
@@ -174,7 +174,7 @@ pubic function getProduct(Exe $exe)
 
 #### Verb only method name
 And you can have a route with only the verb.
-```
+```php
 public function get(Exe $exe)
 {
 }
@@ -192,7 +192,7 @@ For some type of usage, like **executable** and **grouped** kind of route, the r
  
 ##### Route name for the restful controller
 It takes a combination of verb and the method name. For example,
-```
+```php
 public function postProducts()
 {
 }
