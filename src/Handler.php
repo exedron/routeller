@@ -2,6 +2,7 @@
 namespace Exedron\Routeller;
 
 use Exedra\Contracts\Routing\GroupHandler;
+use Exedra\Exception\Exception;
 use Exedra\Routing\Factory;
 use Exedra\Routing\Route;
 use Exedron\Routeller\Controller\Controller;
@@ -14,11 +15,24 @@ class Handler implements GroupHandler
         if((is_object($pattern) && $pattern instanceof Controller))
             return true;
 
+        if(is_string($pattern) && class_exists($pattern))
+            return true;
+
         return false;
     }
 
     public function resolve(Factory $factory, $routing, Route $parentRoute = null)
     {
+        if(is_string($routing))
+        {
+            $classname = $routing;
+
+            $routing = new $routing;
+
+            if(! ($routing instanceof Controller))
+                throw new Exception('[' . $classname . '] must be a type of [' . Controller::class .']');
+        }
+
         $reflection = new \ReflectionClass($routing);
 
         $reader = new AnnotationsReader(new AnnotationsParser(), new ArrayCache());
