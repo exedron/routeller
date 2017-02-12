@@ -91,7 +91,7 @@ class Handler implements GroupHandler
             else
                 continue;
 
-            $properties = $reader->getAnnotations($reflectionMethod)->toArray();
+            $properties = $reader->getRouteProperties($reflectionMethod);
 
             if($method)
                 $properties['method'] = $method;
