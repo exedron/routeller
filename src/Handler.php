@@ -5,7 +5,7 @@ use Exedra\Contracts\Routing\GroupHandler;
 use Exedra\Routing\Factory;
 use Exedra\Routing\Route;
 use Exedron\Routeller\Controller\Controller;
-use Exedron\Routeller\Reflection\Reflection;
+use Minime\Annotations\Cache\ArrayCache;
 
 class Handler implements GroupHandler
 {
@@ -19,13 +19,13 @@ class Handler implements GroupHandler
 
     public function resolve(Factory $factory, $routing, Route $parentRoute = null)
     {
-        $reflection = new Reflection($routing);
+        $reflection = new \ReflectionClass($routing);
 
-        $reader = $reflection->getAnnotationReader();
+        $reader = new AnnotationsReader(new AnnotationsParser(), new ArrayCache());
 
         $group = $factory->createGroup(array(), $parentRoute);
 
-        /** @var Routing $routing */
+        /** @var Controller $routing */
         $routing->setUp($group);
 
         if($isRestful = $routing->isRestful())
