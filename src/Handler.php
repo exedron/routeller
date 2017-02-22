@@ -10,6 +10,11 @@ use Minime\Annotations\Cache\ArrayCache;
 
 class Handler implements GroupHandler
 {
+    /**
+     * @var array $httpVerbs
+     */
+    protected static $httpVerbs = array('get', 'post', 'put', 'patch', 'delete', 'options');
+
     public function validate($pattern, Route $route = null)
     {
         if((is_object($pattern) && $pattern instanceof Controller))
@@ -19,6 +24,11 @@ class Handler implements GroupHandler
             return true;
 
         return false;
+    }
+
+    protected function createReader()
+    {
+        return new AnnotationsReader(new AnnotationsParser(), new ArrayCache());
     }
 
     public function resolve(Factory $factory, $routing, Route $parentRoute = null)
@@ -35,24 +45,14 @@ class Handler implements GroupHandler
 
         $reflection = new \ReflectionClass($routing);
 
-        $reader = new AnnotationsReader(new AnnotationsParser(), new ArrayCache());
+        $reader = $this->createReader();
 
         $group = $factory->createGroup(array(), $parentRoute);
 
         /** @var Controller $routing */
         $routing->setUp($group);
 
-        if($isRestful = $routing->isRestful())
-        {
-            $httpVerbs = array(
-                'get' => 'get',
-                'post' => 'post',
-                'put' => 'put',
-                'patch' => 'patch',
-                'delete' => 'delete',
-                'options' => 'options'
-            );
-        }
+        $isRestful = $routing->isRestful();
 
         foreach($reflection->getMethods() as $reflectionMethod)
         {
@@ -60,7 +60,12 @@ class Handler implements GroupHandler
 
             if(strpos($methodName, 'middleware') === 0)
             {
-                $group->addMiddleware($reflectionMethod->getClosure($routing));
+                $properties = $reader->getRouteProperties($reflectionMethod);
+
+                $name = isset($properties['name']) ? $properties['name'] : null;
+
+                $group->addMiddleware($reflectionMethod->getClosure($routing), $name);
+
                 continue;
             }
 
@@ -86,7 +91,7 @@ class Handler implements GroupHandler
             }
             else if($isRestful)
             {
-                foreach($httpVerbs as $verb)
+                foreach(static::$httpVerbs as $verb)
                 {
                     if(strpos($methodName, $verb) === 0)
                     {
