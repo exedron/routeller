@@ -7,6 +7,12 @@ use Minime\Annotations\Reader;
 
 class AnnotationsReader extends Reader
 {
+    protected static $exceptions = array(
+        'return' => 1,
+        'param' => 1,
+        'throws' => 1
+    );
+
     /**
      * @param \Reflector $Reflection
      * @return array
@@ -28,7 +34,12 @@ class AnnotationsReader extends Reader
         $properties = array();
 
         foreach($ast as $key => $value)
+        {
+            if(isset(static::$exceptions[$key]))
+                continue;
+
             DotArray::set($properties, $key, $value);
+        }
 
         return $properties;
     }

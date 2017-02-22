@@ -31,7 +31,7 @@ $app->provider->add(\Exedron\Routeller\Provider::class);
 ```
 On your preferred route, add use the controller using the *group()* method.
 ```php
-$app->map['web']->group(new \App\Controller\Web);
+$app->map['web']->group(\App\Controller\Web::class);
 ```
 On the \App\Controller\Web class, extends the base class.
 ```php
@@ -189,6 +189,21 @@ public function post(Exe $exe)
 }
 ```
 Of course, this is just a sample. Best way to do a resourceful design in Exedra, is through a subrouting.
+
+## Other route properties
+```
+/**
+ * @tag users
+ * @ajax true
+ * @middleware \App\Middleware\Auth
+ */
+pubic function executeUsers()
+{
+}
+```
+
+## Exceptions
+The non route property tags like **return**, **param**, and **throws** tags and will not be parsed.
 
 ## Notes
 ### Routing name
