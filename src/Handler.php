@@ -6,6 +6,7 @@ use Exedra\Exception\Exception;
 use Exedra\Routing\Factory;
 use Exedra\Routing\Route;
 use Exedron\Routeller\Controller\Controller;
+use Exedron\Routeller\Controller\Restful;
 use Minime\Annotations\Cache\ArrayCache;
 
 class Handler implements GroupHandler
@@ -15,11 +16,10 @@ class Handler implements GroupHandler
      */
     protected static $httpVerbs = array('get', 'post', 'put', 'patch', 'delete', 'options');
 
+    protected $caches;
+
     public function validate($pattern, Route $route = null)
     {
-        if((is_object($pattern) && $pattern instanceof Controller))
-            return true;
-
         if(is_string($pattern) && class_exists($pattern))
             return true;
 
@@ -31,29 +31,29 @@ class Handler implements GroupHandler
         return new AnnotationsReader(new AnnotationsParser(), new ArrayCache());
     }
 
-    public function resolve(Factory $factory, $routing, Route $parentRoute = null)
+    /**
+     * @param Factory $factory
+     * @param $routing
+     * @param Route|null $parentRoute
+     * @return \Exedra\Routing\Group
+     * @throws Exception
+     */
+    public function resolve(Factory $factory, $classname, Route $parentRoute = null)
     {
-        if(is_string($routing))
-        {
-            $classname = $routing;
+        $reflection = new \ReflectionClass($classname);
 
-            $routing = new $routing;
+        if(!$reflection->isSubclassOf(Controller::class))
+            throw new Exception('[' . $classname . '] must be a type of [' . Controller::class .']');
 
-            if(! ($routing instanceof Controller))
-                throw new Exception('[' . $classname . '] must be a type of [' . Controller::class .']');
-        }
-
-        $reflection = new \ReflectionClass($routing);
+        $controller = $classname::instance();
 
         $reader = $this->createReader();
 
         $group = $factory->createGroup(array(), $parentRoute);
 
-        /** @var Controller $routing */
-        $routing->setUp($group);
+        $isRestful = $reflection->isSubclassOf(Restful::class);
 
-        $isRestful = $routing->isRestful();
-
+        // loop all the class's methods
         foreach($reflection->getMethods() as $reflectionMethod)
         {
             $methodName = $reflectionMethod->getName();
@@ -62,16 +62,15 @@ class Handler implements GroupHandler
             {
                 $properties = $reader->getRouteProperties($reflectionMethod);
 
-                $name = isset($properties['name']) ? $properties['name'] : null;
-
-                $group->addMiddleware($reflectionMethod->getClosure($routing), $name);
+                $group->addMiddleware($reflectionMethod->getClosure($controller), isset($properties['name']) ? $properties['name'] : null);
 
                 continue;
             }
 
             if(strpos($methodName, 'route') === 0)
             {
-                $routing->{$methodName}($group);
+                $controller->{$methodName}($group);
+
                 continue;
             }
 
@@ -79,36 +78,24 @@ class Handler implements GroupHandler
 
             $method = null;
 
-            if(strpos($methodName, 'execute') === 0)
+            if($routeName = $this->parseExecuteMethod($methodName))
             {
                 $type = 'execute';
-                $methodName = strtolower(substr($methodName, 7, strlen($methodName)));
             }
-            else if(strpos($methodName, 'group') === 0)
+            else if($routeName = $this->parseGroupMethod($methodName))
             {
                 $type = 'subroutes';
-                $methodName = strtolower(substr($methodName, 5, strlen($methodName)));
             }
-            else if($isRestful)
+            else if($isRestful && $result = $this->parseRestfulMethod($methodName))
             {
-                foreach(static::$httpVerbs as $verb)
-                {
-                    if(strpos($methodName, $verb) === 0)
-                    {
-                        $type = 'execute';
-                        $methodName = strtolower(substr($methodName, strlen($verb), strlen($methodName)));
-                        $methodName = $methodName ? $verb . '-' . $methodName : $verb;
-                        $method = $verb;
+                $type = 'execute';
 
-                        break;
-                    }
-                }
-
-                if(!$type)
-                    continue;
+                @list($routeName, $method) = $result;
             }
             else
+            {
                 continue;
+            }
 
             $properties = $reader->getRouteProperties($reflectionMethod);
 
@@ -118,16 +105,60 @@ class Handler implements GroupHandler
             if(count($properties) == 0)
                 continue;
 
-            if($type == 'execute')
-                $properties['execute'] = $reflectionMethod->getClosure($routing);
-            else
-                $properties['subroutes'] = $reflectionMethod->invoke($routing);
+            if($type == 'execute') // if it is, save the closure.
+                $properties['execute'] = $reflectionMethod->getClosure($controller);
+            else  // else invoke the method to get the group handling pattern.
+                $properties['subroutes'] = $controller->{$methodName}();
 
-            $name = isset($properties['name']) ? $properties['name'] : $methodName;
-
-            $group->addRoute($factory->createRoute($group, $name, $properties));
+            $group->addRoute($factory->createRoute($group, isset($properties['name']) ? $properties['name'] : $routeName, $properties));
         }
 
         return $group;
+    }
+
+    /**
+     * get route name and the verb if it's prefixed with one of the http verbs.
+     * @param $method
+     * @return array|null
+     */
+    public function parseRestfulMethod($method)
+    {
+        foreach(static::$httpVerbs as $verb)
+        {
+            if(strpos($method, $verb) === 0)
+            {
+                $methodName = strtolower(substr($method, strlen($verb), strlen($method)));
+                $routeName = $methodName ? $verb . '-' . $methodName : $verb;
+                $method = $verb;
+
+                return array($routeName, $method);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Get route name if it's prefixed with 'execute'
+     * @return string|null
+     */
+    protected function parseExecuteMethod($method)
+    {
+        if(strpos($method, 'execute') !== 0)
+            return null;
+
+        return strtolower(substr($method, 7, strlen($method)));
+    }
+
+    /**
+     * Get route name if it's prefixed with 'group'
+     * @return string|null
+     */
+    protected function parseGroupMethod($method)
+    {
+        if(strpos($method, 'group') !== 0)
+            return null;
+
+        return strtolower(substr($method, 5, strlen($method)));
     }
 }

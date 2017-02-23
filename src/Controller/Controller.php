@@ -7,12 +7,22 @@ abstract class Controller
 {
     protected $isRestful = false;
 
+    protected static $instance;
+
+    protected function __construct()
+    {
+    }
+
+    public static function instance()
+    {
+        if(!static::$instance)
+            static::$instance = new static();
+
+        return static::$instance;
+    }
+
     public function isRestful()
     {
         return $this->isRestful;
-    }
-
-    public function setUp(Group $group)
-    {
     }
 }

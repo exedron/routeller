@@ -2,7 +2,6 @@
 namespace Exedron\Routeller;
 
 use Exedra\Support\DotArray;
-use Minime\Annotations\Cache\ArrayCache;
 use Minime\Annotations\Reader;
 
 class AnnotationsReader extends Reader

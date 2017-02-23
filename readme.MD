@@ -1,39 +1,49 @@
 # \Exedron\Routeller
-A Minimal annotation and reflection based anemic routeful controller for Exedra. 
+A Minimal annotation and reflection based anemic routeful controller for Exedra.
 
 In a simple word, a routeable-action-controller component in steroid.
 
 ## Introduction
 Have you ever feel, about how ambigous our http controller usually is, especially on designing a restful api webservice. The http controller as we 
-know today, is often nothing more than a bag of methods with ambiguous responsibility, which rarely say something about the domain problems, 
+know today, is often nothing more than a bag of methods/actions with ambiguous behaviour, which rarely say something about the domain problems, 
 except by the controller class name, and what it inheritently contains, aside from being mapped independantly from the routing component. And I find it tedious to constantly need to work on both the route mapping, and the controller codes.
 
 **The ambiguity of responsibility**. This is what this package is about to tackle, 
-by totally removing the responsibility of preparing services, flatten the controller design, 
-and make it as anemic as possible. In a simple word, the controller knows nothing about the runtime construction logic, 
+by totally removing the controller instantiability, flatten the controller design, 
+and make it as anemic as possible. In a simple word, the controller is incapable of construction, 
 but knows very well about the routing design.
 
 The annotation design is fairly simple, just a @property-value mapping. Nothing much!
 
 ## Requirement
-This package works only on Exedra. It cannot be used independantly, because.. Of course, 
+This package works only for Exedra. It cannot be used independantly, because.. Of course, 
 it's part of Exedra routing component.
 
 ## Installation and usage
-Install the package
+### Installation
+Install through composer
 ```
 composer require exedron\routeller dev-master
 ```
+#### Add via service provider
 Setup the service provider
 ```php
 // your application instance
 $app->provider->add(\Exedron\Routeller\Provider::class);
 ```
+
+#### Add via routing factory
+Alternatively, you may manually add the handler.
+```
+$app->routingFactory->addGroupHandler(new \Exedron\Routeller\Handler);
+```
+
+### Usage
 On your preferred route, add use the controller using the *group()* method.
 ```php
 $app->map['web']->group(\App\Controller\Web::class);
 ```
-On the \App\Controller\Web class, extends the base class.
+The controller **MUST** by type of *\Exedron\Routeller\Controller\Controller*.
 ```php
 <?php
 namespace App\Controller;
@@ -96,8 +106,18 @@ Add a middleware for the current group's route, by prefixing the method name wit
 public function middlewareAuth(Exe $exe)
 {
     if(!$exe->session->has('user_id'))
-        return $exe->redirect->route('@web.index');
+        return $exe->redirect->route('@web.login');
 
+    return $exe->next($exe);
+}
+```
+The middleware name is optional though, so, you can still set it.
+```
+/**
+ * @name csrf
+ */
+public function middlewareCsrf()
+{
     return $exe->next($exe);
 }
 ```
@@ -111,7 +131,7 @@ The method must return the routing group pattern.
  */
 public function groupProducts()
 {
-    return new \App\Controller\Products;
+    return \App\Controller\Products::class;
 }
 ```
 
@@ -191,6 +211,7 @@ public function post(Exe $exe)
 Of course, this is just a sample. Best way to do a resourceful design in Exedra, is through a subrouting.
 
 ## Other route properties
+#### Tagging and ajax
 ```
 /**
  * @tag users
@@ -199,6 +220,50 @@ Of course, this is just a sample. Best way to do a resourceful design in Exedra,
  */
 pubic function executeUsers()
 {
+}
+```
+#### Attributes (and sample middleware)
+```
+public function middlewareAuth(\Exedra\Runtime\Exe $exe)
+{
+    if($exe->attr('need_auth', false) && !$exe->session->has('user_id'))
+        throw new NotLoggedInException;
+        
+    return $exe->next($exe);
+}
+
+/**
+ * @attr.need_auth true
+ * @path /admin
+ * @method any
+ */
+public function groupAdmin()
+{
+    return Admin::class;
+}
+```
+
+#### All possible properties
+```
+/**
+ * @name admin_default
+ * @method GET|POST
+ * @path /admin/:controller/:action
+ * @ajax false
+ * @middleware \App\Middleware\Auth
+ * @middleware \App\Middleware\Csrf
+ * @middleware \App\Middleware\Limiter
+ * @tag admin_default
+ * @attr.session_timeout 36000
+ * @config.request_limit 15
+ * 
+public function executeAdminDefault($exe)
+{
+    // nah, just a sample.
+    $controller = $exe->param('controller');
+    $action = $exe->param('action');
+    
+    return (new $controller)->{$action}($exe);
 }
 ```
 
