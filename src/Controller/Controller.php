@@ -1,13 +1,11 @@
 <?php
 namespace Exedron\Routeller\Controller;
 
-use Exedra\Routing\Group;
-
 abstract class Controller
 {
     protected $isRestful = false;
 
-    protected static $instance;
+    protected static $instances = array();
 
     protected function __construct()
     {
@@ -15,10 +13,12 @@ abstract class Controller
 
     public static function instance()
     {
-        if(!static::$instance)
-            static::$instance = new static();
+        $classname = static::class;
 
-        return static::$instance;
+        if(!isset(static::$instances[$classname]))
+            static::$instances[$classname] = new static();
+
+        return static::$instances[$classname];
     }
 
     public function isRestful()
