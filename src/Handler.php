@@ -109,6 +109,9 @@ class Handler implements GroupHandler
                 $properties['execute'] = $reflectionMethod->getClosure($controller);
             else  // else invoke the method to get the group handling pattern.
                 $properties['subroutes'] = $controller->{$methodName}();
+            
+            if(isset($properties['name']))
+                $properties['name'] = (string) $properties['name'];
 
             $group->addRoute($factory->createRoute($group, isset($properties['name']) ? $properties['name'] : $routeName, $properties));
         }
