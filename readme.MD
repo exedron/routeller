@@ -135,6 +135,23 @@ public function groupProducts()
 }
 ```
 
+#### Pre-assigned middleware
+Assign a middleware on this routing group defining level
+```php
+/**
+ * @path /admin
+ */
+public function groupAdmin()
+{
+    return \App\Controller\Admin::instance()->addMiddleware(function(Context $context) {
+        if(!$context->session->has('user-id'))
+            throw new \Exception('User is not logged in');
+    
+        return $context->next($context);
+    });
+}
+```
+
 ### Normal routing
 You can also do a usual routing by prefixing the method name with *route*. This method expects no annotation.
 ```php

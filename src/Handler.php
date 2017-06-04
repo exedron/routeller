@@ -23,6 +23,9 @@ class Handler implements GroupHandler
         if(is_string($pattern) && class_exists($pattern))
             return true;
 
+        if(is_object($pattern) && $pattern instanceof Controller)
+            return true;
+
         return false;
     }
 
@@ -45,11 +48,15 @@ class Handler implements GroupHandler
         if(!$reflection->isSubclassOf(Controller::class))
             throw new Exception('[' . $classname . '] must be a type of [' . Controller::class .']');
 
+        /** @var Controller $controller */
         $controller = $classname::instance();
 
         $reader = $this->createReader();
 
         $group = $factory->createGroup(array(), $parentRoute);
+
+        foreach($controller->getMiddlewares() as $middleware)
+            $group->addMiddleware($middleware);
 
         $isRestful = $reflection->isSubclassOf(Restful::class);
 
