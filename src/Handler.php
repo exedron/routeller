@@ -29,7 +29,7 @@ class Handler implements GroupHandler
 
     protected $isAutoReload;
 
-    public function __construct(array $options = array(), CacheInterface $cache = null)
+    public function __construct(CacheInterface $cache = null, array $options = array())
     {
         $this->cache = $cache ? $cache : new EmptyCache;
 
@@ -138,6 +138,10 @@ class Handler implements GroupHandler
 
                     $group->addRoute($factory->createRoute($group, isset($properties['name']) ? $properties['name'] : $entry['route']['name'], $properties));
                 }
+                else if(isset($entry['setup']))
+                {
+                    $controller::instance()->{$entry['method']}($group);
+                }
             }
 
             return $group;
@@ -176,9 +180,15 @@ class Handler implements GroupHandler
                 continue;
             }
 
-            if(strpos($methodName, 'route') === 0)
+            if(strpos($methodName, 'route') === 0 || strpos(strtolower($methodName), 'setup') === 0)
             {
                 $controller->{$methodName}($group);
+
+                $entries[] = array(
+                    'setup' => array(
+                        'method' => $methodName
+                    )
+                );
 
                 continue;
             }

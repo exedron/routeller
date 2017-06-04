@@ -33,10 +33,25 @@ $app->provider->add(\Exedron\Routeller\Provider::class);
 ```
 
 #### Add via routing factory
-Alternatively, you may manually add the handler.
-```
+Alternatively, you may manually add the handler, and set up additional things.
+```php
 $app->routingFactory->addGroupHandler(new \Exedron\Routeller\Handler);
+
+$app->map->addExecuteHandler('routeller_execute', ExecuteHandler::class);
 ```
+
+#### Enable caching
+Enable a file based cache
+```php
+$options = array(
+    'auto_reload' => true
+);
+
+$cache = new \Exedron\Routeller\Cache\FileCache(__DIR__ .'/routing_caches')
+
+$app->provider->add(new \Exedron\Routeller\Provider($cache, $options));
+```
+The ```auto_reload``` option lets it reload the cache each time there's some change to the controllers.
 
 ### Usage
 On your preferred route, add use the controller using the *group()* method.
@@ -153,14 +168,20 @@ public function groupAdmin()
 ```
 
 ### Normal routing
-You can also do a usual routing by prefixing the method name with *route*. This method expects no annotation.
+You can also do a usual routing by prefixing the method name with *setUp*. This method expects no annotation.
 ```php
-public function routeGeneral(Group $router)
+public function setUp(Group $router)
 {
     $router->get('/')->execute(function() {
     });
 }
+
+public function setUpCustom(Group $router)
+{
+    // do another thing
+}
 ```
+
 
 ## Restful verbs
 This package also support a simple restful mapping.

@@ -14,7 +14,7 @@ class Provider implements ProviderInterface
 
     protected $cache;
 
-    public function __construct(array $options = array(), CacheInterface $cache = null)
+    public function __construct(CacheInterface $cache = null, array $options = array())
     {
         $this->cache = $cache ? $cache : new EmptyCache();
 
@@ -23,7 +23,7 @@ class Provider implements ProviderInterface
 
     public function register(Application $app)
     {
-        $app->map->factory->addGroupHandler(new Handler($this->options, $this->cache));
+        $app->map->factory->addGroupHandler(new Handler($this->cache, $this->options));
 
         $app->map->addExecuteHandler('routeller_execute', ExecuteHandler::class);
     }
