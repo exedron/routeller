@@ -140,7 +140,7 @@ class Handler implements GroupHandler
                 }
                 else if(isset($entry['setup']))
                 {
-                    $controller::instance()->{$entry['method']}($group);
+                    $controller::instance()->{$entry['setup']['method']}($group);
                 }
             }
 
