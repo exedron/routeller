@@ -58,7 +58,7 @@ class Handler implements GroupHandler
         foreach($controller->getMiddlewares() as $middleware)
             $group->addMiddleware($middleware);
 
-        $isRestful = $reflection->isSubclassOf(Restful::class);
+        $isRestful = true;
 
         // loop all the class's methods
         foreach($reflection->getMethods() as $reflectionMethod)

@@ -3,8 +3,6 @@ namespace Exedron\Routeller\Controller;
 
 abstract class Controller
 {
-    protected $isRestful = false;
-
     protected static $instances = array();
 
     protected $middlewares = array();
@@ -45,10 +43,5 @@ abstract class Controller
     public function getMiddlewares()
     {
         return $this->middlewares;
-    }
-
-    public function isRestful()
-    {
-        return $this->isRestful;
     }
 }
