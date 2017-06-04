@@ -80,6 +80,9 @@ class Handler implements GroupHandler
 
                 $controller = $classname::instance()->{$method}();
 
+                if(!$this->validate($controller))
+                    throw new Exception('Unable to validate the routing group for [' . $classname . ':' . $method .'()]');
+
                 return $this->resolve($factory, $controller, $parentRoute);
             }
 
