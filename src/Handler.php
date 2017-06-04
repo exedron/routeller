@@ -5,6 +5,8 @@ use Exedra\Contracts\Routing\GroupHandler;
 use Exedra\Exception\Exception;
 use Exedra\Routing\Factory;
 use Exedra\Routing\Route;
+use Exedron\Routeller\Cache\CacheInterface;
+use Exedron\Routeller\Cache\EmptyCache;
 use Exedron\Routeller\Controller\Controller;
 use Exedron\Routeller\Controller\Restful;
 use Minime\Annotations\Cache\ArrayCache;
@@ -18,8 +20,29 @@ class Handler implements GroupHandler
 
     protected $caches;
 
+    /**
+     * @var CacheInterface
+     */
+    protected $cache;
+
+    protected $options;
+
+    protected $isAutoReload;
+
+    public function __construct(array $options = array(), CacheInterface $cache = null)
+    {
+        $this->cache = $cache ? $cache : new EmptyCache;
+
+        $this->options = $options;
+
+        $this->isAutoReload = isset($this->options['auto_reload']) && $this->options['auto_reload'] === true ? true : false;
+    }
+
     public function validate($pattern, Route $route = null)
     {
+        if(is_string($pattern) && strpos($pattern, 'routeller=') === 0)
+            return true;
+
         if(is_string($pattern) && class_exists($pattern))
             return true;
 
@@ -41,24 +64,96 @@ class Handler implements GroupHandler
      * @return \Exedra\Routing\Group
      * @throws Exception
      */
-    public function resolve(Factory $factory, $classname, Route $parentRoute = null)
+    public function resolve(Factory $factory, $controller, Route $parentRoute = null)
     {
-        $reflection = new \ReflectionClass($classname);
-
-        if(!$reflection->isSubclassOf(Controller::class))
-            throw new Exception('[' . $classname . '] must be a type of [' . Controller::class .']');
-
-        /** @var Controller $controller */
-        $controller = $classname::instance();
-
-        $reader = $this->createReader();
-
         $group = $factory->createGroup(array(), $parentRoute);
+
+        if(is_object($controller))
+        {
+            $classname = get_class($controller);
+        }
+        else
+        {
+            if(is_string($controller) && strpos($controller, 'routeller=') === 0)
+            {
+                list($classname, $method) = explode('@', str_replace('routeller=', '', $controller));
+
+                $controller = $classname::instance()->{$method}();
+
+                return $this->resolve($factory, $controller, $parentRoute);
+            }
+
+            $classname = $controller;
+
+            /** @var Controller $controller */
+            $controller = $controller::instance();
+        }
+
+        $key = md5(get_class($controller));
+
+        $entries = null;
+
+        if($this->isAutoReload)
+        {
+            $reflection = new \ReflectionClass($controller);
+
+            $lastModified = filemtime($reflection->getFileName());
+
+            $cache = $this->cache->get($key);
+
+            if($cache)
+            {
+                if($cache['last_modified'] != $lastModified)
+                {
+                    $this->cache->clear($key);
+                }
+                else
+                {
+                    $entries = $cache['entries'];
+                }
+            }
+        }
+        else
+        {
+            $cache = $this->cache->get($key);
+
+            if($cache)
+                $entries = $cache['entries'];
+        }
 
         foreach($controller->getMiddlewares() as $middleware)
             $group->addMiddleware($middleware);
 
+        if($entries)
+        {
+            foreach($entries as $entry)
+            {
+                if(isset($entry['middleware']))
+                {
+                    $group->addMiddleware(array($controller, $entry['middleware']['handle']), $entry['middleware']['name']);
+                }
+                else if(isset($entry['route']))
+                {
+                    $properties = $entry['route']['properties'];
+
+                    $group->addRoute($factory->createRoute($group, isset($properties['name']) ? $properties['name'] : $entry['route']['name'], $properties));
+                }
+            }
+
+            return $group;
+        }
+
+        if(!$this->isAutoReload)
+            $reflection = new \ReflectionClass($controller);
+
+        if(!$reflection->isSubclassOf(Controller::class))
+            throw new Exception('[' . $classname . '] must be a type of [' . Controller::class .']');
+
+        $reader = $this->createReader();
+
         $isRestful = true;
+
+        $entries = array();
 
         // loop all the class's methods
         foreach($reflection->getMethods() as $reflectionMethod)
@@ -67,6 +162,13 @@ class Handler implements GroupHandler
 
             if(strpos($methodName, 'middleware') === 0)
             {
+                $entries[] = array(
+                    'middleware' => array(
+                        'name' => isset($properties['name']) ? $properties['name'] : null,
+                        'handle' => $reflectionMethod->getName()
+                    )
+                );
+
                 $properties = $reader->getRouteProperties($reflectionMethod);
 
                 $group->addMiddleware($reflectionMethod->getClosure($controller), isset($properties['name']) ? $properties['name'] : null);
@@ -113,15 +215,28 @@ class Handler implements GroupHandler
                 continue;
 
             if($type == 'execute') // if it is, save the closure.
-                $properties['execute'] = $reflectionMethod->getClosure($controller);
+                $properties['execute'] = 'routeller=' . $classname .'@'. $reflectionMethod->getName();
             else  // else invoke the method to get the group handling pattern.
                 $properties['subroutes'] = $controller->{$methodName}();
             
             if(isset($properties['name']))
                 $properties['name'] = (string) $properties['name'];
 
-            $group->addRoute($factory->createRoute($group, isset($properties['name']) ? $properties['name'] : $routeName, $properties));
+            $group->addRoute($factory->createRoute($group, $routeName = (isset($properties['name']) ? $properties['name'] : $routeName), $properties));
+
+            // cache purpose
+            if(isset($properties['subroutes']))
+                $properties['subroutes'] = 'routeller=' . $classname .'@'. $methodName;
+
+            $entries[] = array(
+                'route' => array(
+                    'name' => $routeName,
+                    'properties' => $properties
+                )
+            );
         }
+
+        $this->cache->set($key, $entries, isset($lastModified) ? $lastModified : filemtime($reflection->getFileName()));
 
         return $group;
     }
