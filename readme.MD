@@ -67,7 +67,7 @@ class Web extends \Exedron\Routeller\Controller\Controller
     /**
      * @path /
      */
-    public function executeIndex(Exe $exe)
+    public function executeIndex(Context $context)
     {
         return 'This is index page';
     }
@@ -77,7 +77,7 @@ class Web extends \Exedron\Routeller\Controller\Controller
      * @path /about-us
      * @method GET|POST
      */
-    public function executeAboutUs(Exe $exe)
+    public function executeAboutUs(Context $context)
     {
         return 'This is about page';
     }
@@ -89,11 +89,11 @@ use Exedra\Routing\Router;
 use Exedra\Runtime\Exe;
 
 $app->map['web']->group(function(Router $router) {
-    $router['index']->any('/')->execute(function(Exe $exe) {
+    $router['index']->any('/')->execute(function(Context $context) {
         return 'This is index page';
     });
     
-    $router['about-us']->any('/about-us')->execute(function(Exe $exe) {
+    $router['about-us']->any('/about-us')->execute(function(Context $context) {
         return 'This is about page';
     });
 });
@@ -103,12 +103,12 @@ $app->map['web']->group(function(Router $router) {
 Add a middleware for the current group's route, by prefixing the method name with *middleware*.
  This method expects no annotation.
 ```php
-public function middlewareAuth(Exe $exe)
+public function middlewareAuth(Context $context)
 {
-    if(!$exe->session->has('user_id'))
-        return $exe->redirect->route('@web.login');
+    if(!$context->session->has('user_id'))
+        return $context->redirect->route('@web.login');
 
-    return $exe->next($exe);
+    return $context->next($context);
 }
 ```
 The middleware name is optional though, so, you can still set it.
@@ -118,7 +118,7 @@ The middleware name is optional though, so, you can still set it.
  */
 public function middlewareCsrf()
 {
-    return $exe->next($exe);
+    return $context->next($context);
 }
 ```
 
@@ -165,16 +165,6 @@ public function routeGeneral(Group $router)
 ## Restful verbs
 This package also support a simple restful mapping.
 
-#### Extending the restful abstract class
-```php
-namespace App\Controller;
-
-use Exedron\Routeller\Controller\Restful;
-
-class Products extends Restful
-{
-}
-```
 #### GET, POST, PUT, PATCH, DELETE verb
 Prefix each method with the http verb as you like.
 ```php
@@ -182,7 +172,7 @@ Prefix each method with the http verb as you like.
  * Get all products
  * @path /
  */
-public function getProducts(Exe $exe)
+public function getProducts(Context $context)
 {
 }
 ```
@@ -191,7 +181,7 @@ public function getProducts(Exe $exe)
  * Create a new product
  * @path /
  */
-pubic function postProducts(Exe $exe)
+pubic function postProducts(Context $context)
 {
 }
 ```
@@ -200,7 +190,7 @@ pubic function postProducts(Exe $exe)
  * GET the product
  * @path /[:id]
  */
-pubic function getProduct(Exe $exe)
+pubic function getProduct(Context $context)
 {
 }
 ```
@@ -209,7 +199,7 @@ pubic function getProduct(Exe $exe)
  * DELETE the product
  * @path /[:id]
  */
-pubic function getProduct(Exe $exe)
+pubic function getProduct(Context $context)
 {
 }
 ```
@@ -217,11 +207,11 @@ pubic function getProduct(Exe $exe)
 #### Verb only method name
 And you can have a route with only the verb.
 ```php
-public function get(Exe $exe)
+public function get(Context $context)
 {
 }
 
-public function post(Exe $exe)
+public function post(Context $context)
 {
 }
 ```
@@ -241,12 +231,12 @@ pubic function executeUsers()
 ```
 #### Attributes (and sample middleware)
 ```
-public function middlewareAuth(\Exedra\Runtime\Exe $exe)
+public function middlewareAuth(\Exedra\Runtime\Context $context)
 {
-    if($exe->attr('need_auth', false) && !$exe->session->has('user_id'))
+    if($context->attr('need_auth', false) && !$context->session->has('user_id'))
         throw new NotLoggedInException;
         
-    return $exe->next($exe);
+    return $context->next($context);
 }
 
 /**
@@ -274,13 +264,13 @@ public function groupAdmin()
  * @attr.session_timeout 36000
  * @config.request_limit 15
  * 
-public function executeAdminDefault($exe)
+public function executeAdminDefault($context)
 {
     // nah, just a sample.
-    $controller = $exe->param('controller');
-    $action = $exe->param('action');
+    $controller = $context->param('controller');
+    $action = $context->param('action');
     
-    return (new $controller)->{$action}($exe);
+    return (new $controller)->{$action}($context);
 }
 ```
 
