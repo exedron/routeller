@@ -124,7 +124,7 @@ class Handler implements GroupHandler
                 $entries = $cache['entries'];
         }
 
-        foreach($controller->getMiddlewares() as $middleware)
+        foreach($controller->allMiddlewares() as $middleware)
             $group->addMiddleware($middleware);
 
         if($entries)

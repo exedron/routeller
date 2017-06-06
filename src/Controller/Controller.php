@@ -40,7 +40,7 @@ abstract class Controller
      * Get all controller added middleware
      * @return array
      */
-    public function getMiddlewares()
+    public function allMiddlewares()
     {
         return $this->middlewares;
     }
