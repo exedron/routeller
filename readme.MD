@@ -244,7 +244,7 @@ Inject with known service(s)
 use Exedra\Url\UrlGenerator;
 
 /**
- * @injects context.url
+ * @inject context.url
  * @path /
  */
 public function get(UrlGenerator $url)
@@ -259,7 +259,7 @@ use Exedra\Application;
 use Exedra\Routing\Group;
 
 /**
- * @injects context, url, self.response, app, app.map
+ * @inject context, url, self.response, app, app.map
  * @path /
  */
  public function post(Context $context, $url, $response, Application $app, Group $map)

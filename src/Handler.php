@@ -232,7 +232,7 @@ class Handler implements GroupHandler
 
             $properties = $reader->getRouteProperties($reflectionMethod);
 
-            if($method)
+            if($method && !isset($properties['method']))
                 $properties['method'] = $method;
 
             if(count($properties) == 0)
