@@ -180,10 +180,10 @@ class Handler implements GroupHandler
                     )
                 );
 
-                if(isset($properties['injects']))
+                if(isset($properties['inject']))
                 {
-                    $properties['dependencies'] = $properties['injects'];
-                    unset($properties['injects']);
+                    $properties['dependencies'] = $properties['inject'];
+                    unset($properties['inject']);
                 }
 
                 if(isset($properties['dependencies']) && is_string($properties['dependencies']))
@@ -246,8 +246,8 @@ class Handler implements GroupHandler
             if(isset($properties['name']))
                 $properties['name'] = (string) $properties['name'];
 
-            if(isset($properties['injects']) && is_string($properties['injects']))
-                $properties['injects'] = array_map('trim', explode(',', trim($properties['injects'], ' []')));
+            if(isset($properties['inject']) && is_string($properties['inject']))
+                $properties['inject'] = array_map('trim', explode(',', trim($properties['inject'], ' []')));
 
             $group->addRoute($factory->createRoute($group, $routeName = (isset($properties['name']) ? $properties['name'] : $routeName), $properties));
 
