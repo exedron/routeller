@@ -27,11 +27,12 @@ abstract class Controller
     /**
      * Add a controller based middleware
      * @param $middleware
+     * @param array $properties
      * @return $this
      */
-    public function addMiddleware($middleware)
+    protected function addMiddleware($middleware, array $properties = array())
     {
-        $this->middlewares[] = $middleware;
+        $this->middlewares[] = array($middleware, $properties);
 
         return $this;
     }

@@ -238,6 +238,39 @@ public function post(Context $context)
 ```
 Of course, this is just a sample. Best way to do a resourceful design in Exedra, is through a subrouting.
 
+#### Dependency injection
+Inject with known service(s)
+```php
+use Exedra\Url\UrlGenerator;
+
+/**
+ * @injects context.url
+ * @path /
+ */
+public function get(UrlGenerator $url)
+{
+    echo $url->current();
+}
+```
+Multiple services
+```php
+use Exedra\Runtime\Context;
+use Exedra\Application;
+use Exedra\Routing\Group;
+
+/**
+ * @injects context, url, self.response, app, app.map
+ * @path /
+ */
+ public function post(Context $context, $url, $response, Application $app, Group $map)
+ {
+ }
+```
+##### Notes
+- ```self``` and ```context``` is the same thing that is a type of \Exedra\Runtime\Context, the context of the current runtime.
+- the services prefixed with ```app.``` will instead look inside the ```Exedra\Application``` container 
+- without a prefix, ```context.```, ```self.``` or ```app.```, the resolve will only look for the service registered the Context object.
+
 ## Other route properties
 #### Tagging and ajax
 ```

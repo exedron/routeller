@@ -125,7 +125,7 @@ class Handler implements GroupHandler
         }
 
         foreach($controller->allMiddlewares() as $middleware)
-            $group->addMiddleware($middleware);
+            $group->addMiddleware($middleware[0], $middleware[1]);
 
         if($entries)
         {
@@ -133,7 +133,9 @@ class Handler implements GroupHandler
             {
                 if(isset($entry['middleware']))
                 {
-                    $group->addMiddleware(array($controller, $entry['middleware']['handle']), $entry['middleware']['name']);
+                    $group->addMiddleware(function() use($controller, $entry) {
+                        return call_user_func_array(array($controller, $entry['middleware']['handle']), func_get_args());
+                    }, $entry['middleware']['properties']);
                 }
                 else if(isset($entry['route']))
                 {
@@ -169,16 +171,25 @@ class Handler implements GroupHandler
 
             if(strpos($methodName, 'middleware') === 0)
             {
+                $properties = $reader->getRouteProperties($reflectionMethod);
+
                 $entries[] = array(
                     'middleware' => array(
-                        'name' => isset($properties['name']) ? $properties['name'] : null,
+                        'properties' => $properties,
                         'handle' => $reflectionMethod->getName()
                     )
                 );
 
-                $properties = $reader->getRouteProperties($reflectionMethod);
+                if(isset($properties['injects']))
+                {
+                    $properties['dependencies'] = $properties['injects'];
+                    unset($properties['injects']);
+                }
 
-                $group->addMiddleware($reflectionMethod->getClosure($controller), isset($properties['name']) ? $properties['name'] : null);
+                if(isset($properties['dependencies']) && is_string($properties['dependencies']))
+                    $properties['dependencies'] = array_map('trim', explode(',', trim($properties['dependencies'])));
+
+                $group->addMiddleware($reflectionMethod->getClosure($controller), $properties);
 
                 continue;
             }
@@ -234,6 +245,9 @@ class Handler implements GroupHandler
             
             if(isset($properties['name']))
                 $properties['name'] = (string) $properties['name'];
+
+            if(isset($properties['injects']) && is_string($properties['injects']))
+                $properties['injects'] = array_map('trim', explode(',', trim($properties['injects'])));
 
             $group->addRoute($factory->createRoute($group, $routeName = (isset($properties['name']) ? $properties['name'] : $routeName), $properties));
 
