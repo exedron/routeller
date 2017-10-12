@@ -1,6 +1,7 @@
 <?php
 namespace Exedron\Routeller\Console\Commands;
 
+use Exedra\Application;
 use Exedra\Routing\Group;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Helper\TableCell;
@@ -11,8 +12,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class RouteListCommand extends \Exedra\Console\Commands\RouteListCommand
 {
-    public function __construct(Group $group, $name = 'routeller:routes')
+    protected $app;
+
+    public function __construct(Application $app, Group $group, $name = 'routeller:routes')
     {
+        $this->app = $app;
+
         parent::__construct($group, $name);
     }
 
@@ -61,7 +66,15 @@ class RouteListCommand extends \Exedra\Console\Commands\RouteListCommand
             if(is_string($execute = $route->getProperty('execute')) && strpos($execute, 'routeller=') === 0) {
                 $action = str_replace('routeller=', '', $execute);
             } else {
-                $action = is_object($execute) && $execute instanceof \Closure ? '(\Closure)' : '(' . gettype($route->getProperty('execute')) . ')';
+                if(is_object($execute) && $execute instanceof \Closure) {
+                    $ref = new \ReflectionFunction($execute);
+
+                    $rootDir = $this->app->getRootDir();
+
+                    $action = ltrim(str_replace($rootDir, '', $ref->getFileName()), '\\/') . ' (' . $ref->getStartLine() . ')';
+                } else {
+                    $action = '(' . gettype($route->getProperty('execute')) . ')';
+                }
             }
 
             $data = array(

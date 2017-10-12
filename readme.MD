@@ -331,6 +331,21 @@ public function executeAdminDefault($context)
 ## Exceptions
 The non route property tags like **return**, **param**, and **throws** tags and will not be parsed.
 
+## Console Commands
+This package also provides a similar command on the original route listing, except that it added a little bit more details on the result.
+
+```php
+$app = new \Exedra\Application(__DIR__);
+
+//... do some routing
+
+$console = new \Symfony\Component\Console\Application();
+
+$console->add(new \Exedron\Routeller\Console\Commands\RouteListCommand($app, $app->map));
+
+$console->run();
+```
+
 ## Notes
 ### Routing name
 For some type of usage, like **executable** and **grouped** kind of route, the route name will be taken from the
