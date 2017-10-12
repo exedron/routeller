@@ -61,7 +61,7 @@ class RouteListCommand extends \Exedra\Console\Commands\RouteListCommand
             if(is_string($execute = $route->getProperty('execute')) && strpos($execute, 'routeller=') === 0) {
                 $action = str_replace('routeller=', '', $execute);
             } else {
-                $action = '(' . gettype($route->getProperty('execute')) . ')';
+                $action = is_object($execute) && $execute instanceof \Closure ? '(\Closure)' : '(' . gettype($route->getProperty('execute')) . ')';
             }
 
             $data = array(
@@ -74,9 +74,6 @@ class RouteListCommand extends \Exedra\Console\Commands\RouteListCommand
 
             foreach($header as $col) {
                 $col = strtolower($col);
-
-                if(!isset($data[$col]))
-                    throw new \RuntimeException('Can\'t find property : ' . $col);
 
                 $row[] = $data[$col];
             }
