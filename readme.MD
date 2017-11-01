@@ -56,7 +56,7 @@ The ```auto_reload``` option lets it reload the cache each time there's some cha
 ### Usage
 On your preferred route, add use the controller using the *group()* method.
 ```php
-$app->map['web']->group(\App\Controller\Web::class);
+$app->map['web']->group(\App\Controller\WebController::class);
 ```
 The controller **MUST** by type of *\Exedron\Routeller\Controller\Controller*.
 ```php
@@ -65,7 +65,7 @@ namespace App\Controller;
 
 use Exedron\Routeller\Controller\Controller;
 
-class Web extends Controller {
+class WebController extends Controller {
 
 }
 ```
@@ -77,7 +77,7 @@ namespace App\Controller;
 
 use Exedra\Runtime\Exe;
 
-class Web extends \Exedron\Routeller\Controller\Controller
+class WebController extends \Exedron\Routeller\Controller\Controller
 {
     /**
      * @path /
