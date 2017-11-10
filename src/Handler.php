@@ -1,6 +1,7 @@
 <?php
 namespace Exedron\Routeller;
 
+use Exedra\Application;
 use Exedra\Contracts\Routing\GroupHandler;
 use Exedra\Exception\Exception;
 use Exedra\Routing\Factory;
@@ -18,6 +19,9 @@ class Handler implements GroupHandler
      */
     protected static $httpVerbs = array('get', 'post', 'put', 'patch', 'delete', 'options');
 
+    /**
+     * @var
+     */
     protected $caches;
 
     /**
@@ -25,12 +29,22 @@ class Handler implements GroupHandler
      */
     protected $cache;
 
+    /**
+     * @var array
+     */
     protected $options;
 
     protected $isAutoReload;
 
-    public function __construct(CacheInterface $cache = null, array $options = array())
+    /**
+     * @var Application
+     */
+    protected $app;
+
+    public function __construct(Application $app, CacheInterface $cache = null, array $options = array())
     {
+        $this->app = $app;
+
         $this->cache = $cache ? $cache : new EmptyCache;
 
         $this->options = $options;
@@ -78,7 +92,7 @@ class Handler implements GroupHandler
             {
                 list($classname, $method) = explode('@', str_replace('routeller=', '', $controller));
 
-                $controller = $classname::instance()->{$method}();
+                $controller = $classname::instance()->{$method}($this->app);
 
                 if(!$this->validate($controller))
                     throw new Exception('Unable to validate the routing group for [' . $classname . ':' . $method .'()]');
@@ -238,7 +252,7 @@ class Handler implements GroupHandler
             if($type == 'execute') // if it is, save the closure.
                 $properties['execute'] = 'routeller=' . $classname .'@'. $reflectionMethod->getName();
             else  // else invoke the method to get the group handling pattern.
-                $properties['subroutes'] = $controller->{$methodName}();
+                $properties['subroutes'] = $controller->{$methodName}($this->app);
             
             if(isset($properties['name']))
                 $properties['name'] = (string) $properties['name'];

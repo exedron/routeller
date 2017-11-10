@@ -2,13 +2,14 @@
 namespace Exedron\Routeller;
 
 use Exedra\Application;
+use Exedra\Contracts\Provider\Provider;
 use Exedra\Provider\ProviderInterface;
 use Exedron\Routeller\Cache\ArrayCache;
 use Exedron\Routeller\Cache\CacheInterface;
 use Exedron\Routeller\Cache\EmptyCache;
 use Exedron\Routeller\Cache\FileCache;
 
-class RoutellerProvider implements ProviderInterface
+class RoutellerProvider implements Provider
 {
     protected $options;
 
@@ -23,7 +24,7 @@ class RoutellerProvider implements ProviderInterface
 
     public function register(Application $app)
     {
-        $app->map->factory->addGroupHandler(new Handler($this->cache, $this->options));
+        $app->map->factory->addGroupHandler(new Handler($app, $this->cache, $this->options));
 
         $app->map->addExecuteHandler('routeller_execute', ExecuteHandler::class);
     }
