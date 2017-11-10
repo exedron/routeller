@@ -35,7 +35,7 @@ $app->provider->add(\Exedron\Routeller\Provider::class);
 #### Add via routing factory
 Alternatively, you may manually add the handler, and set up additional things.
 ```php
-$app->routingFactory->addGroupHandler(new \Exedron\Routeller\Handler);
+$app->routingFactory->addGroupHandler(new \Exedron\Routeller\Handler($app));
 
 $app->map->addExecuteHandler('routeller_execute', ExecuteHandler::class);
 ```
@@ -115,7 +115,7 @@ $app->map['web']->group(function(Router $router) {
 ```
 
 ### Middleware
-Add a middleware for the current group's route, by prefixing the method name with *middleware*.
+Add a middleware for the current group's route, by prefixing the method name with `middleware`.
  This method expects no annotation.
 ```php
 public function middlewareAuth(Context $context)
@@ -138,7 +138,7 @@ public function middlewareCsrf()
 ```
 
 ### Subrouting / Nest-Routing
-Add a subgroup route. The method name must be prefixed with *group*.
+Add a subgroup route. The method name must be prefixed with `group`.
 The method must return the routing group pattern.
 ```php
 /**
@@ -146,39 +146,34 @@ The method must return the routing group pattern.
  */
 public function groupProducts()
 {
-    return \App\Controller\Products::class;
-}
-```
-
-#### Pre-assigned middleware
-Assign a middleware on this routing group defining level
-```php
-/**
- * @path /admin
- */
-public function groupAdmin()
-{
-    return \App\Controller\Admin::instance()->addMiddleware(function(Context $context) {
-        if(!$context->session->has('user-id'))
-            throw new \Exception('User is not logged in');
-    
-        return $context->next($context);
-    });
+    return \App\Controller\ProductController::class;
 }
 ```
 
 ### Normal routing
-You can also do a usual routing by prefixing the method name with *setUp*. This method expects no annotation.
+You can also do a usual routing by prefixing the method name with `setup`. This method expects no annotation.
 ```php
-public function setUp(Group $router)
+public function setup(Group $group)
 {
-    $router->get('/')->execute(function() {
+    $group->get('/')->execute(function() {
     });
 }
 
-public function setUpCustom(Group $router)
+public function setupCustom(Group $group)
 {
     // do another thing
+}
+```
+This method also receives `Exedra\Application` as the second argument.
+
+```php
+/**
+ * @path /comments
+ */
+public function setup(Group $group, \Exedra\Application $app)
+{
+    $group->get('/')->execute(function() {
+    });
 }
 ```
 

@@ -156,7 +156,7 @@ class Handler implements GroupHandler
                 }
                 else if(isset($entry['setup']))
                 {
-                    $controller::instance()->{$entry['setup']['method']}($group);
+                    $controller::instance()->{$entry['setup']['method']}($group, $this->app);
                 }
             }
 
@@ -207,7 +207,7 @@ class Handler implements GroupHandler
 
             if(strpos($methodName, 'route') === 0 || strpos(strtolower($methodName), 'setup') === 0)
             {
-                $controller->{$methodName}($group);
+                $controller->{$methodName}($group, $this->app);
 
                 $entries[] = array(
                     'setup' => array(
