@@ -75,7 +75,7 @@ Annotate the method with the route properties. The method name has to be prefixe
 <?php
 namespace App\Controller;
 
-use Exedra\Runtime\Exe;
+use Exedra\Runtime\Context;
 
 class WebController extends \Exedron\Routeller\Controller\Controller
 {
@@ -100,15 +100,15 @@ class WebController extends \Exedron\Routeller\Controller\Controller
 ```
 Doing above is similar to doing :
 ```php
-use Exedra\Routing\Router;
-use Exedra\Runtime\Exe;
+use Exedra\Routing\Group;
+use Exedra\Runtime\Context;
 
-$app->map['web']->group(function(Router $router) {
-    $router['index']->any('/')->execute(function(Context $context) {
+$app->map['web']->group(function(Group $group) {
+    $group['index']->any('/')->execute(function(Context $context) {
         return 'This is index page';
     });
     
-    $router['about-us']->any('/about-us')->execute(function(Context $context) {
+    $group['about-us']->any('/about-us')->execute(function(Context $context) {
         return 'This is about page';
     });
 });
