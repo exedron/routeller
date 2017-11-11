@@ -37,6 +37,11 @@ class AnnotationsReader extends Reader
             if(isset(static::$exceptions[$key]))
                 continue;
 
+            if(strpos($key, 'attr.') === 0 && is_string($value) && strpos($value, '[] ') === 0) {
+                $key .= '[]';
+                $value = substr_replace($value, '', 0, strlen('[] '));
+            }
+
             DotArray::set($properties, $key, $value);
         }
 
