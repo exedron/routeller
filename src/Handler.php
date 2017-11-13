@@ -37,11 +37,11 @@ class Handler implements GroupHandler
     protected $isAutoReload;
 
     /**
-     * @var Application
+     * @var Application|null
      */
     protected $app;
 
-    public function __construct(Application $app, CacheInterface $cache = null, array $options = array())
+    public function __construct(Application $app = null, CacheInterface $cache = null, array $options = array())
     {
         $this->app = $app;
 
