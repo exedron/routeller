@@ -4,16 +4,13 @@ A Minimal annotation and reflection based anemic routeful controller for Exedra.
 In a simple word, a routeable-action-controller component in steroid.
 
 ## Introduction
-Have you ever feel, about how ambigous our http controller usually is, especially on designing a restful api webservice. The http controller as we 
-know today, is often nothing more than a bag of methods/actions with ambiguous behaviour, which rarely say something about the domain problems, 
-except by the controller class name, and what it inheritently contains, aside from being mapped independantly from the routing component. And I find it tedious to constantly need to work on both the route mapping, and the controller codes.
 
-**The ambiguity of responsibility**. This is what this package is about to tackle, 
-by totally removing the controller instantiability, flatten the controller design, 
-and make it as anemic as possible. In a simple word, the controller is incapable of construction, 
-but knows very well about the routing design.
+Writing a lot of `\Closure` for your deep nested routing can get messier and not so IDE-friendly as they grow much bigger. 
+This package is built to tackle the issue and give you a nice routing controller over your routing groups.
 
-The annotation design is fairly simple, just a @property-value mapping. Nothing much!
+The controller is anemic, flattened and incapable of construction, but knows very well about the routing design.
+
+The annotation design is fairly simple, just a `@property-value` mapping. Nothing much!
 
 ## Requirement
 This package works only for Exedra. It cannot be used independantly, because.. Of course, 
