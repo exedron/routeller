@@ -136,6 +136,7 @@ public function middlewareCsrf()
 
 ### Subrouting / Nest-Routing
 Add a subgroup route. The method name must be prefixed with `group`.
+
 The method must return the routing group pattern.
 ```php
 /**
@@ -146,6 +147,25 @@ public function groupProducts()
     return \App\Controller\ProductController::class;
 }
 ```
+
+### Immediate subrouting
+Similar to `group` prefix, except that this one have their group resolved immediately.
+```php
+/**
+ * @path /:product-id
+ */
+public function subProduct(Group $group)
+{
+    $group['get']->get('/')->execute(function() {
+        // do your things
+    });
+    
+    $group['update']->post('/')->execute(function() {
+        // do your things
+    });
+}
+```
+
 
 ### Normal routing
 You can also do a usual routing by prefixing the method name with `setup`. This method expects no annotation.
