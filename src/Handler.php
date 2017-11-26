@@ -303,7 +303,7 @@ class Handler implements GroupHandler
         if(strpos($method, 'route') !== 0)
             return null;
 
-        return strtolower(substr($method, 3, strlen($method)));
+        return strtolower(substr($method, 5, strlen($method)));
     }
 
     /**
