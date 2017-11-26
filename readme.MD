@@ -299,7 +299,7 @@ use Exedra\Routing\Group;
 
 ## Other route properties
 #### Tagging and ajax
-```
+```php
 /**
  * @tag users
  * @ajax true
@@ -310,7 +310,7 @@ pubic function executeUsers()
 }
 ```
 #### Attributes (and sample middleware)
-```
+```php
 public function middlewareAuth(\Exedra\Runtime\Context $context)
 {
     if($context->attr('need_auth', false) && !$context->session->has('user_id'))
@@ -331,12 +331,11 @@ public function groupAdmin()
 ```
 
 #### All possible properties
-```
+```php
 /**
  * @name admin_default
  * @method GET|POST
  * @path /admin/:controller/:action
- * @ajax false
  * @middleware \App\Middleware\Auth
  * @middleware \App\Middleware\Csrf
  * @middleware \App\Middleware\Limiter
