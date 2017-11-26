@@ -138,7 +138,7 @@ public function middlewareAuth(Context $context)
 }
 ```
 The middleware name is optional though, so, you can still set it.
-```
+```php
 /**
  * @name csrf
  */
@@ -342,7 +342,7 @@ public function groupAdmin()
  * @tag admin_default
  * @attr.session_timeout 36000
  * @config.request_limit 15
- * 
+ */
 public function executeAdminDefault($context)
 {
     // nah, just a sample.
