@@ -152,7 +152,13 @@ class Handler implements GroupHandler
                 {
                     $properties = $entry['route']['properties'];
 
-                    $group->addRoute($factory->createRoute($group, isset($properties['name']) ? $properties['name'] : $entry['route']['name'], $properties));
+                    $group->addRoute($route = $factory->createRoute($group, isset($properties['name']) ? $properties['name'] : $entry['route']['name'], $properties));
+
+                    if(isset($entry['route']['route_call'])) {
+                        list($classname, $methodName) = explode('@', $entry['route']['route_call']);
+
+                        $classname::instance()->{$methodName}($route ,$this->app);
+                    }
                 }
                 else if(isset($entry['setup']))
                 {
@@ -230,6 +236,8 @@ class Handler implements GroupHandler
                 @list($routeName, $method) = $result;
             } else if($routeName = $this->parseSubMethod($methodName)) {
                 $type = 'subroutes_call';
+            } else if($routeName = $this->parseRouteMethod($methodName)) {
+                $type = 'route_call';
             } else {
                 continue;
             }
@@ -244,7 +252,7 @@ class Handler implements GroupHandler
 
             if($type == 'execute') { // if it is, save the closure.
                 $properties['execute'] = 'routeller=' . $classname .'@'. $reflectionMethod->getName();
-            } else if($type != 'subroutes_call')  {
+            } else if($type == 'subroutes')  {
                 $properties['subroutes'] = $controller->{$methodName}($this->app);
             }
 
@@ -256,6 +264,13 @@ class Handler implements GroupHandler
 
             $group->addRoute($route = $factory->createRoute($group, $routeName = (isset($properties['name']) ? $properties['name'] : $routeName), $properties));
 
+            $entry = array(
+                'route' => array(
+                    'name' => $routeName,
+                    'properties' => $properties
+                )
+            );
+
             if($type == 'subroutes_call') {
                 $app = $this->app;
 
@@ -263,22 +278,32 @@ class Handler implements GroupHandler
                     $controller->{$methodName}($group);
                 });
 
-                $properties['subroutes'] = 'routeller_call=' . $classname . '@' . $methodName;
+                $entry['route']['properties']['subroutes'] = 'routeller_call=' . $classname . '@' . $methodName;
             } else if(isset($properties['subroutes'])) {
-                $properties['subroutes'] = 'routeller=' . $classname .'@'. $methodName;
+                $entry['route']['properties']['subroutes'] = 'routeller=' . $classname .'@'. $methodName;
+            } else if($type == 'route_call') {
+                $controller->{$methodName}($route, $this->app);
+                $entry['route']['route_call'] = $classname . '@' . $methodName;
             }
 
-            $entries[] = array(
-                'route' => array(
-                    'name' => $routeName,
-                    'properties' => $properties
-                )
-            );
+            $entries[] = $entry;
         }
 
         $this->cache->set($key, $entries, isset($lastModified) ? $lastModified : filemtime($reflection->getFileName()));
 
         return $group;
+    }
+
+    /**
+     * @param $method
+     * @return null|string
+     */
+    public function parseRouteMethod($method)
+    {
+        if(strpos($method, 'route') !== 0)
+            return null;
+
+        return strtolower(substr($method, 3, strlen($method)));
     }
 
     /**

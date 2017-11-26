@@ -111,6 +111,20 @@ $app->map['web']->group(function(Group $group) {
 });
 ```
 
+### Adding plain route
+You may want to customize the route more object orientedly, prefix with `route`.
+```php
+/**
+ * @path /faq
+ */
+public function routeFaq(\Exedra\Routing\Route $route)
+{
+    $route->execute(function() {
+    
+    });
+}
+```
+
 ### Middleware
 Add a middleware for the current group's route, by prefixing the method name with `middleware`.
  This method expects no annotation.
