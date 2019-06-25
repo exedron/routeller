@@ -1,3 +1,7 @@
+```diff
+- Deprecated : This package has already been merged with https://github.com/rosengate/exedra
+```
+
 # \Exedron\Routeller
 A Minimal annotation and reflection based anemic routeful controller for Exedra.
 
